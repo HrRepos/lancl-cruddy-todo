@@ -37,10 +37,33 @@ const writeCounter = (count, callback) => {
 };
 
 // Public API - Fix this function //////////////////////////////////////////////
-
-exports.getNextUniqueId = () => {
-  counter = counter + 1;
-  return zeroPaddedNumber(counter);
+// O (output): an ID, by using CPS in the function
+// [Todo] How to test actual unique IDs, using some tool
+exports.getNextUniqueId = (cb) => {
+  // First, read the current counter
+  readCounter(
+    // This function is the callback inside readCounter()
+    // It should give the next id, based on the count in the file
+    function(err, count) {
+      // Use error-first callback pattern
+      if (err) {  // If no file exists
+        console.log("error!");
+        cb(err, 0);
+      } else { // If file already exists
+        writeCounter(count + 1,
+          // This function is the callback function inside writeCounter()
+          function(err, counterString){
+            if (err) {
+            console.log("theres an error writing counter!");
+            } else {
+              cb(err, counterString);
+            }
+          }
+        );
+      }
+    }
+  );
+  
 };
 
 
