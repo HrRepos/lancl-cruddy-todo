@@ -36,15 +36,17 @@ exports.create = (text, callback) => {  // For ES6, {} is more general-purpose t
 
       // Step 2: create a new file, for each todo
       // Step 3: should save todo text content in each file (saved as 'text')
-      fs.writeFile(`./datastore/data/${id}.txt`, text, (err) => {
+      //fs.writeFile(`./datastore/data/${id}.txt`, text, (err) => {
+        var filePath = `${exports.dataDir}/${id}.txt`;
+        fs.writeFile(filePath, text, (err) => {  // Modified from 2 lines above, to pass the tests
         if (err) {
           console.log('error creating file');  // Don't use throw (big exit) here
-        } //else {
-          //callback(null, {id: id, text: text});
-        //}
+        } else {
+          // Step 4: update front end, with new object
+          callback(null, {id: id, text: text});  // Need to put this line here (rather than below), to pass a test
+        }
       });
-      // Step 4: update front end, with new object
-      callback(null, {id: id, text: text});
+      // callback(null, {id: id, text: text});
     }
   );
   
@@ -62,10 +64,22 @@ exports.readOne = (id, callback) => {
 
 exports.readAll = (callback) => {
   var data = [];
-  _.each(items, (item, idx) => {
-    data.push({ id: idx, text: items[idx] });
+  fs.readdir(exports.dataDir, (err, files) => {
+    if (err) {
+      console.log('error in reading all files');
+    } else {
+      var data = _.map(files, (file) => { 
+      var id = path.basename(file, '.txt');
+      // Note: per Learn page, don't dig into the file content now
+      // fs.readfile
+      return {
+        id: id,
+        text: id
+      }
+      });
+    }
+    callback(null, data);
   });
-  callback(null, data);
 };
 
 exports.update = (id, text, callback) => {

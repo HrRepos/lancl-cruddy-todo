@@ -38,7 +38,7 @@ const writeCounter = (count, callback) => {
 
 // Public API - Fix this function //////////////////////////////////////////////
 // O (output): an ID, by using CPS in the function
-// [Todo] How to test actual unique IDs, using some tool
+// Note: no need to add error handling for this function
 exports.getNextUniqueId = (cb) => {
   // First, read the current counter
   readCounter(
