@@ -24,25 +24,27 @@ var items = {};
 //   fs.writeFile('./datastore/sample.txt', id);
 // };
 
-exports.create = (text, callback) => {
+// Note: callback functions are Not loop inside loop; they are just triggered by one another
+exports.create = (text, callback) => {  // For ES6, {} is more general-purpose than ()
+  // Step 1: get unique ID, for each file name
   counter.getNextUniqueId(
     // This function is the callback in getNextUniqueId()
-    function(err, string){ //its a thing
+    function(err, string){
       // Generates unique ID, for each file
       var id = string;
       items[id] = text;
 
-      // Create a new file, for each todo
-      // Should save todo text content in each file
-      //fs.writeFile(`.datastore/data/${id}.txt`, text, (err) => {
-      fs.writeFile(`.datastore/data/${id}.txt`, id, (err) => {
+      // Step 2: create a new file, for each todo
+      // Step 3: should save todo text content in each file (saved as 'text')
+      fs.writeFile(`./datastore/data/${id}.txt`, text, (err) => {
         if (err) {
-          throw ('error creating file');
+          console.log('error creating file');  // Don't use throw (big exit) here
         } //else {
           //callback(null, {id: id, text: text});
         //}
       });
-      callback(null, {id: id, text: text});  // For front end's updating
+      // Step 4: update front end, with new object
+      callback(null, {id: id, text: text});
     }
   );
   
