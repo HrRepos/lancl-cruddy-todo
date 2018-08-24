@@ -3,26 +3,13 @@ const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
 
+/*[Todo] Figure out how to use browser, for debugging node.js (AKA server.js)
+  console.log does not always work*/
+//var test = require('tape');  // For testing node in browser
+
 var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
-
-// exports.create = (text, callback) => {
-//   // var id = counter.getNextUniqueId();  // Temporarily commented out
-//   var id = 'hahaha';
-//   items[id] = text;
-
-//   callback(null, {id: id, text: text});
-
-// // fs.writeFile('./sample.txt', (err) => {
-// //   if (err) {
-// //     throw ('error creating file');
-// //   } else {
-// //     callback(null, id);
-// //   }
-// // });
-//   fs.writeFile('./datastore/sample.txt', id);
-// };
 
 // Note: callback functions are Not loop inside loop; they are just triggered by one another
 exports.create = (text, callback) => {  // For ES6, {} is more general-purpose than ()
@@ -51,17 +38,6 @@ exports.create = (text, callback) => {  // For ES6, {} is more general-purpose t
   );
   
 }
-//`string you want to to add a ${variable} into`
-
-exports.readOne = (id, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    callback(null, {id: id, text: item});
-  }
-};
-
 exports.readAll = (callback) => {
   var data = [];
   fs.readdir(exports.dataDir, (err, files) => {
@@ -74,7 +50,7 @@ exports.readAll = (callback) => {
       // fs.readfile
       return {
         id: id,
-        text: id
+        text: id  // [Todo] Later, update 'id' with 'content'
       }
       });
     }
@@ -82,25 +58,73 @@ exports.readAll = (callback) => {
   });
 };
 
+//`string you want to to add a ${variable} into`
+exports.readOne = (id, callback) => {
+  var filePath = path.join(exports.dataDir, `${id}.txt`);
+  fs.readFile(filePath, (err, item) => {
+    //var item = items[id];
+    //if (!item) {
+    //console.log(item);  // Nothing shows for this test
+    if (err) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      //callback(null, {id: id, text: item.toString()});
+      callback(null, { id, text: item.toString() });
+    }
+
+  });
+};
+
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, {id: id, text: text});
-  }
+  var filePath = `${exports.dataDir}/${id}.txt`;
+  fs.readFile(filePath, (err, item) => {
+    if(!item) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      fs.writeFile(filePath, text, (err) => {
+        if(err) {
+          console.log('error updating file');
+        } else {
+          //items[id] = text;
+          callback(null, { id, text: text });
+        }
+      })
+    }
+  });
+
+  // var item = items[id];
+  // if (!item) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   items[id] = text;
+  //   callback(null, {id: id, text: text});
+  // }
 };
 
 exports.delete = (id, callback) => {
-  var item = items[id];
-  delete items[id];
-  if(!item) {
-    // report an error if item not found
-    callback(new Error(`No item with id: ${id}`))
-  } else {
-    callback();
-  }
+  var filePath = `${exports.dataDir}/${id}.txt`;
+  fs.readFile(filePath, (err, item) => {
+    if(!item) {
+      callback(new Error(`No item with id: ${id}`));
+    } else {
+      fs.unlink(filePath, (err) => {
+        if(err) {
+          console.log('error deleting file');
+        } else {
+          callback(null);
+        }
+      })
+    }
+  });
+
+  // var item = items[id];
+  // delete items[id];
+  // if(!item) {
+  //   // report an error if item not found
+  //   callback(new Error(`No item with id: ${id}`))
+  // } else {
+  //   callback();
+  // }
 };
 
 // Config+Initialization code -- DO NOT MODIFY /////////////////////////////////
